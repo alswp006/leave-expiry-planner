@@ -10,6 +10,7 @@ import { TossRewardAd } from '@/components/TossRewardAd';
 import { EmptyState, LoadingState } from '../components/StateView';
 import { logClick } from '@/lib/analytics';
 import { formatDot, isValidYmd } from '@/lib/date';
+import { loadInput } from '@/lib/inputStore';
 import { summarize } from '@/lib/summary';
 import type { AppInput, AppResult, BucketKind } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
@@ -21,6 +22,7 @@ type View =
   | { kind: 'ready'; input: AppInput; result: AppResult };
 
 const NOTICES = [
+  '남은 일수와 금액은 모두 추정치예요.',
   '출근율 80% 이상·개근을 가정한 추정치예요.',
   '상시 5인 미만 사업장은 연차 규정이 적용되지 않아요.',
   '회사가 연차 사용 촉진을 했다면 수당이 나오지 않을 수 있어요.',
@@ -71,7 +73,9 @@ function calculate(input: AppInput, today: string): AppResult {
 /** 누른 시점의 오늘로 계산한다. 예외는 에러 상태로 돌려 console.error를 남기지 않는다. */
 function compute(state: unknown): View {
   const today = todayYmd();
-  const input = readInput(state, today);
+  // 새로고침 등으로 route state가 사라지면 마지막 입력으로 복원한다
+  const hasState = typeof state === 'object' && state !== null && 'input' in state;
+  const input = hasState ? readInput(state, today) : readInput({ input: loadInput() }, today);
   if (!input) return { kind: 'empty' };
   try {
     return { kind: 'ready', input, result: calculate(input, today) };

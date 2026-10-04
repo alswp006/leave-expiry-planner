@@ -82,8 +82,8 @@ export default function Home() {
 
   let hint: string | undefined;
   if (!valid) {
-    if (hireDigits === '') hint = '입사일을 입력하면 계산할 수 있어요';
-    else if (salaryDigits === '') hint = '월급을 입력하면 계산할 수 있어요';
+    if (hireDigits === '') hint = salaryDigits === '' ? '입사일과 월급을 입력하면 계산할 수 있어요' : '입사일을 입력하면 계산할 수 있어요';
+    else if (salaryDigits === '') hint = '월급은 연차수당 계산에 필요해요. 월급을 입력해 주세요';
     else hint = errors.hireDate ?? errors.monthlySalary ?? errors.usedDays;
   }
 
@@ -109,7 +109,7 @@ export default function Home() {
         />
       }
     >
-      {stored === null && (
+      {stored === null && !hireDigits && !salaryDigits && !usedText && (
         <>
           <EmptyState
             testId="home-empty"
@@ -177,7 +177,7 @@ export default function Home() {
         onFocus={scrollToCenter}
         onBlur={() => touch('monthlySalary')}
         hasError={shown('monthlySalary') !== undefined}
-        help={shown('monthlySalary')}
+        help={shown('monthlySalary') ?? '연차수당(1일 통상임금)을 계산할 때만 써요'}
       />
 
       <Spacing size={16} />
