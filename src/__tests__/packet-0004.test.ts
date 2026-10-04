@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { AppInput, LeaveBucket } from "@/lib/types";
+import type { AppInput } from "@/lib/types";
+import { validateInput } from "@/lib/validation";
+import {
+  maskHireDate,
+  displayHireDate,
+  maskSalary,
+  displaySalary,
+  maskUsedDays,
+} from "@/lib/inputMask";
+import { saveInput, loadInput } from "@/lib/inputStore";
 
 // ============================================================================
 // AC-INPUT-2: 6가지 검증 문구
@@ -209,6 +218,7 @@ describe("AC-INPUT-MASKING: 입력 마스킹", () => {
 // ============================================================================
 describe("AC-STORAGE-SAFE: localStorage 실패 처리", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     localStorage.clear();
     vi.clearAllMocks();
     vi.useRealTimers();
@@ -371,7 +381,7 @@ describe("AC-STORAGE-SAFE: localStorage 실패 처리", () => {
       const consoleLogSpy = vi.spyOn(console, "log");
 
       // Scenario 1: setItem failure
-      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
         throw new Error("QuotaExceededError");
       });
       saveInput({
@@ -380,6 +390,7 @@ describe("AC-STORAGE-SAFE: localStorage 실패 처리", () => {
         monthlySalary: 3000000,
         usedDays: 0,
       });
+      setItemSpy.mockRestore(); // 시나리오 3의 시드 저장이 실제로 되도록
 
       // Scenario 2: getItem failure
       vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
@@ -404,50 +415,3 @@ describe("AC-STORAGE-SAFE: localStorage 실패 처리", () => {
     });
   });
 });
-
-// ============================================================================
-// Helper functions (these will be imported from actual modules)
-// ============================================================================
-function validateInput(
-  raw: Partial<AppInput>,
-  today: string,
-  availableTenths?: number
-): Partial<Record<keyof AppInput, string>> {
-  // Placeholder — implementation in src/lib/validation.ts
-  throw new Error("Not implemented");
-}
-
-function maskHireDate(raw: string): string {
-  // Placeholder — implementation in src/lib/inputMask.ts
-  throw new Error("Not implemented");
-}
-
-function displayHireDate(digits: string): string {
-  // Placeholder — implementation in src/lib/inputMask.ts
-  throw new Error("Not implemented");
-}
-
-function maskSalary(raw: string): string {
-  // Placeholder — implementation in src/lib/inputMask.ts
-  throw new Error("Not implemented");
-}
-
-function displaySalary(digits: string): string {
-  // Placeholder — implementation in src/lib/inputMask.ts
-  throw new Error("Not implemented");
-}
-
-function maskUsedDays(raw: string): string {
-  // Placeholder — implementation in src/lib/inputMask.ts
-  throw new Error("Not implemented");
-}
-
-function saveInput(input: AppInput): void {
-  // Placeholder — implementation in src/lib/inputStore.ts
-  throw new Error("Not implemented");
-}
-
-function loadInput(): AppInput | null {
-  // Placeholder — implementation in src/lib/inputStore.ts
-  throw new Error("Not implemented");
-}

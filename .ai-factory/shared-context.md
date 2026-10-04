@@ -155,8 +155,11 @@ export interface RouteState {
   lib/
     accrual.ts
     analytics.ts
+    bridges.ts
     contract.ts
     date.ts
+    holidays.ts
+    plan.ts
     review.ts
     share.ts
     storage.ts
@@ -177,8 +180,11 @@ export interface RouteState {
 ### Exports (src/lib/)
 - accrual.ts: export function buildBuckets(input: AppInput, today: string): LeaveBucket[]; export function getNextAccrual(input: AppInput, today: string):
 - analytics.ts: export type LogFields = Record<string, string | number | boolean | null>; export const DWELL_MS = 3000; export function fireAndForget(call: () => unknown): void; export function logScreen(page: string, extra?: LogFields): void; export function logClick(name: string, extra?: LogFields): void; export function logImpression(name: string, extra?: LogFields): void; export function useScreenLog(page: string): void
+- bridges.ts: export function recommendBridges( today: string, expiryDate: string, remainingTenths: number, holidays: string[], ): Bri
 - contract.ts: export type AppInput =; export type LeaveBucket =; export type BridgeCombo =; export type MonthPlan =; export type AppResult =; export type RouteState =; export type parseYmdFn = (s: string) => string | null; export type isValidYmdFn = (ymd: string) => boolean
 - date.ts: export interface Ymd; export function parseYmd(ymd: string): Ymd; export function isValidYmd(ymd: string): boolean; export function addMonthsClamp(ymd: string, months: number): string; export function addYears(ymd: string, years: number): string; export function addDays(ymd: string, days: number): string; export function diffDays(from: string, to: string): number; export function formatDot(ymd: string): string
+- holidays.ts: export const HOLIDAYS: string[] = [ // 2026 '2026-01-01', '2026-02-16', '2026-02-17', '2026-02-18', // 설 연휴 '2026-03-02'; export const holidays: string[] = HOLIDAYS; export const HOLIDAY_COVERAGE_END = '2027-12-31'
+- plan.ts: export function buildMonthlyPlan( today: string, expiryDate: string, remainingTenths: number, combos: BridgeCombo[], ): 
 - review.ts: export function requestReviewOnce(key: string = REVIEW_REQUESTED_KEY): void
 - share.ts: export interface ShareAppOptions; export async function shareApp(opts: ShareAppOptions): Promise<void>
 - storage.ts: export function getItem<T>(key: string): T | null; export function setItem<T>(key: string, value: T): void; export function removeItem(key: string): void
@@ -210,6 +216,7 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 ## Already Implemented (do NOT duplicate or overwrite)
 - 0001: 타입 정의 + 날짜 유틸 (files: src/lib/types.ts, src/lib/date.ts)
 - 0002: 연차 발생 계산 + 사용 차감·요약 (files: src/lib/accrual.ts, src/lib/summary.ts)
+- 0003: 공휴일 + 연휴 조합 + 월별 플랜 (files: src/lib/holidays.ts, src/lib/bridges.ts, src/lib/plan.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -274,10 +281,12 @@ export function logClick(name: string, extra?: LogFields): void {
 export function logImpression(name: string, extra?: LogFields): void {
 export function useScreenLog(page: string): void {
 
+// src/lib/bridges.ts
+export function recommendBridges(
+
 // src/lib/contract.ts
 export type AppInput = { joinDate: string; monthlyWage: number; usedDays: number };
-export type LeaveBucket = { startDate: string; expiryDate: string; daysInTenths: number };
-export type BridgeCombo = { s
+export type LeaveBucket = { startDate: string; expiryDate: stri
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
