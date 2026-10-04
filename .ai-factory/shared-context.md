@@ -81,8 +81,55 @@ export type validateInputFn = (raw: unknown, today: string) => { [key: string]: 
 
 ## Shared Types Contract (IMPORT these, do NOT redefine)
 ```typescript
-// Domain types — add your app-specific types here
-export {};
+// SPEC Data Model — 필드명 변경 금지
+export type Basis = 'hire' | 'fiscal';
+
+export interface AppInput {
+  hireDate: string; // 'YYYY-MM-DD'
+  basis: Basis;
+  monthlySalary: number; // 원, 1 ~ 100,000,000
+  usedDays: number; // 0.5 단위, 기본 0
+}
+
+export type BucketKind = 'monthly' | 'prorated' | 'annual';
+
+export interface LeaveBucket {
+  kind: BucketKind; // 1년 미만 월 단위 / 회계연도 비례 / 연 단위
+  grantedDate: string; // monthly는 첫 발생일
+  expiryDate: string; // 사용기한(마지막 사용 가능일)
+  grantedTenths: number; // 발생 일수 ×10
+  remainingTenths: number; // 사용 차감 후 ×10
+}
+
+export interface AppResult {
+  today: string;
+  buckets: LeaveBucket[]; // 사용기한 지난 묶음 제외, 사용기한 오름차순
+  totalRemainingTenths: number;
+  nearest: LeaveBucket | null; // 남은 일수 > 0인 묶음 중 사용기한이 가장 이른 것
+  dDay: number | null;
+  dailyWage: number; // floor(월급/209*8)
+  expiringAmount: number; // floor(dailyWage * nearest.remaining)
+  nextAccrual: { date: string; tenths: number } | null;
+}
+
+export interface MonthPlan {
+  month: string; // 'YYYY-MM'
+  tenths: number;
+  comboDates: string[];
+}
+
+export interface BridgeCombo {
+  leaveDates: string[];
+  offStart: string;
+  offEnd: string;
+  offDays: number;
+  efficiency: number;
+}
+
+export interface RouteState {
+  input: AppInput;
+  result: AppResult;
+}
 
 ```
 
@@ -107,6 +154,8 @@ export {};
   hooks/
   lib/
     analytics.ts
+    contract.ts
+    date.ts
     review.ts
     share.ts
     storage.ts
@@ -125,9 +174,12 @@ export {};
 
 ### Exports (src/lib/)
 - analytics.ts: export type LogFields = Record<string, string | number | boolean | null>; export const DWELL_MS = 3000; export function fireAndForget(call: () => unknown): void; export function logScreen(page: string, extra?: LogFields): void; export function logClick(name: string, extra?: LogFields): void; export function logImpression(name: string, extra?: LogFields): void; export function useScreenLog(page: string): void
+- contract.ts: export type AppInput =; export type LeaveBucket =; export type BridgeCombo =; export type MonthPlan =; export type AppResult =; export type RouteState =; export type parseYmdFn = (s: string) => string | null; export type isValidYmdFn = (ymd: string) => boolean
+- date.ts: export interface Ymd; export function parseYmd(ymd: string): Ymd; export function isValidYmd(ymd: string): boolean; export function addMonthsClamp(ymd: string, months: number): string; export function addYears(ymd: string, years: number): string; export function addDays(ymd: string, days: number): string; export function diffDays(from: string, to: string): number; export function formatDot(ymd: string): string
 - review.ts: export function requestReviewOnce(key: string = REVIEW_REQUESTED_KEY): void
 - share.ts: export interface ShareAppOptions; export async function shareApp(opts: ShareAppOptions): Promise<void>
 - storage.ts: export function getItem<T>(key: string): T | null; export function setItem<T>(key: string, value: T): void; export function removeItem(key: string): void
+- types.ts: export type Basis = 'hire' | 'fiscal'; export interface AppInput; export type BucketKind = 'monthly' | 'prorated' | 'annual'; export interface LeaveBucket; export interface AppResult; export interface MonthPlan; export interface BridgeCombo; export interface RouteState
 - utils.ts: export function cn(...classes: (string | boolean | undefined | null)[]): string; export function formatNumber(n: number): string; export function formatCurrency(n: number, currency = 'KRW'): string
 
 ### Components (src/components/)
@@ -146,6 +198,9 @@ export {};
 - TossPurchase.tsx: TossPurchase
 - TossRewardAd.tsx: TossRewardAd
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
+
+## Already Implemented (do NOT duplicate or overwrite)
+- 0001: 타입 정의 + 날짜 유틸 (files: src/lib/types.ts, src/lib/date.ts)
 
 ## Available exports from existing files
 // src/App.tsx
