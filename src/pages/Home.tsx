@@ -81,8 +81,8 @@ export default function Home() {
 
   let hint: string | undefined;
   if (!valid) {
-    if (hireDigits === '') hint = salaryDigits === '' ? '입사일과 월급을 입력하면 계산할 수 있어요' : '입사일을 입력하면 계산할 수 있어요';
-    else if (salaryDigits === '') hint = '월급은 연차수당 계산에 필요해요. 월급을 입력해 주세요';
+    if (hireDigits === '') hint = '입사일을 입력해 주세요';
+    else if (salaryDigits === '') hint = '월급을 입력해 주세요';
     else hint = errors.hireDate ?? errors.monthlySalary ?? errors.usedDays;
   }
 
@@ -108,6 +108,13 @@ export default function Home() {
         />
       }
     >
+      {stored === null ? (
+        <div data-testid="home-empty" style={{ padding: '8px 24px 16px', wordBreak: 'keep-all' }}>
+          <Paragraph.Text typography="t6" color="var(--adaptiveGrey600)">
+            입사일만 넣으면 연차가 사라지는 날을 알려드려요
+          </Paragraph.Text>
+        </div>
+      ) : null}
       <TextField
         variant="box"
         label="입사일"
