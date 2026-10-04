@@ -85,7 +85,7 @@ function compute(state: unknown): View {
 }
 
 function dDayText(dDay: number): string {
-  return dDay === 0 ? 'D-Day' : `D-${formatNumber(dDay)}`;
+  return dDay === 0 ? 'D-DAY' : `D-${formatNumber(dDay)}`;
 }
 
 function days(tenths: number): string {
@@ -134,7 +134,7 @@ export default function Result() {
     const { result } = view;
     const nearest = result.nearest;
     const hasExpiring = nearest !== null && result.dDay !== null && result.totalRemainingTenths > 0;
-    const liveBuckets = result.buckets.filter((b) => b.remainingTenths > 0);
+    const liveBuckets = result.buckets;
     const next = result.nextAccrual;
 
     return (
@@ -173,7 +173,7 @@ export default function Result() {
           <InfoRow label="1일 통상임금(추정)" value={`${formatNumber(result.dailyWage)}원`} />
           <InfoRow
             label="다음 발생 예정"
-            value={next ? `${formatDot(next.date)} · ${days(next.tenths)}` : '예정된 발생이 없어요'}
+            value={next ? `${formatDot(next.date)} · +${days(next.tenths)}` : '예정된 발생이 없어요'}
           />
         </Card>
         {liveBuckets.length > 0 ? (
@@ -188,7 +188,7 @@ export default function Result() {
                     <ListRow.Texts
                       type="2RowTypeA"
                       top={`${formatDot(b.expiryDate)}까지`}
-                      bottom={`${KIND_LABEL[b.kind]} · 남은 ${days(b.remainingTenths)}`}
+                      bottom={`${KIND_LABEL[b.kind]} · 발생 ${formatDot(b.grantedDate)} · 남은 ${days(b.remainingTenths)} / 발생 ${days(b.grantedTenths)}`}
                     />
                   }
                 />
