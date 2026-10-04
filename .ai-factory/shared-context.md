@@ -153,12 +153,14 @@ export interface RouteState {
     TossRewardAd.tsx
   hooks/
   lib/
+    accrual.ts
     analytics.ts
     contract.ts
     date.ts
     review.ts
     share.ts
     storage.ts
+    summary.ts
     types.ts
     utils.ts
   main.tsx
@@ -173,12 +175,14 @@ export interface RouteState {
   vite-env.d.ts
 
 ### Exports (src/lib/)
+- accrual.ts: export function buildBuckets(input: AppInput, today: string): LeaveBucket[]; export function getNextAccrual(input: AppInput, today: string):
 - analytics.ts: export type LogFields = Record<string, string | number | boolean | null>; export const DWELL_MS = 3000; export function fireAndForget(call: () => unknown): void; export function logScreen(page: string, extra?: LogFields): void; export function logClick(name: string, extra?: LogFields): void; export function logImpression(name: string, extra?: LogFields): void; export function useScreenLog(page: string): void
 - contract.ts: export type AppInput =; export type LeaveBucket =; export type BridgeCombo =; export type MonthPlan =; export type AppResult =; export type RouteState =; export type parseYmdFn = (s: string) => string | null; export type isValidYmdFn = (ymd: string) => boolean
 - date.ts: export interface Ymd; export function parseYmd(ymd: string): Ymd; export function isValidYmd(ymd: string): boolean; export function addMonthsClamp(ymd: string, months: number): string; export function addYears(ymd: string, years: number): string; export function addDays(ymd: string, days: number): string; export function diffDays(from: string, to: string): number; export function formatDot(ymd: string): string
 - review.ts: export function requestReviewOnce(key: string = REVIEW_REQUESTED_KEY): void
 - share.ts: export interface ShareAppOptions; export async function shareApp(opts: ShareAppOptions): Promise<void>
 - storage.ts: export function getItem<T>(key: string): T | null; export function setItem<T>(key: string, value: T): void; export function removeItem(key: string): void
+- summary.ts: export function applyUsage(buckets: LeaveBucket[], usedTenths: number): LeaveBucket[]; export function summarize(input: AppInput, today: string): AppResult
 - types.ts: export type Basis = 'hire' | 'fiscal'; export interface AppInput; export type BucketKind = 'monthly' | 'prorated' | 'annual'; export interface LeaveBucket; export interface AppResult; export interface MonthPlan; export interface BridgeCombo; export interface RouteState
 - utils.ts: export function cn(...classes: (string | boolean | undefined | null)[]): string; export function formatNumber(n: number): string; export function formatCurrency(n: number, currency = 'KRW'): string
 
@@ -197,10 +201,15 @@ export interface RouteState {
 - SummaryHero.tsx: SummaryHero
 - TossPurchase.tsx: TossPurchase
 - TossRewardAd.tsx: TossRewardAd
+
+### Module Dependencies (import graph)
+  lib/accrual.ts → imports: lib/types, lib/date
+  lib/summary.ts → imports: lib/types, lib/date, lib/accrual
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
 - 0001: 타입 정의 + 날짜 유틸 (files: src/lib/types.ts, src/lib/date.ts)
+- 0002: 연차 발생 계산 + 사용 차감·요약 (files: src/lib/accrual.ts, src/lib/summary.ts)
 
 ## Available exports from existing files
 // src/App.tsx
@@ -252,6 +261,10 @@ export function TossPurchase({
 // src/components/TossRewardAd.tsx
 export function TossRewardAd({
 
+// src/lib/accrual.ts
+export function buildBuckets(input: AppInput, today: string): LeaveBucket[] {
+export function getNextAccrual(input: AppInput, today: string): { date: string; tenths: number } | null {
+
 // src/lib/analytics.ts
 export type LogFields = Record<string, string | number | boolean | null>;
 export const DWELL_MS = 3000;
@@ -264,9 +277,7 @@ export function useScreenLog(page: string): void {
 // src/lib/contract.ts
 export type AppInput = { joinDate: string; monthlyWage: number; usedDays: number };
 export type LeaveBucket = { startDate: string; expiryDate: string; daysInTenths: number };
-export type BridgeCombo = { startDate: string; offDays: number };
-export type MonthPlan = { month: string; allocatedTenths: number; combos: BridgeCombo[] };
-export type AppResult = { dDay: number; expiringAmountKrw: number; buckets: Lea
+export type BridgeCombo = { s
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
