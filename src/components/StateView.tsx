@@ -31,6 +31,7 @@ export function EmptyState({
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
+        wordBreak: "keep-all",
         padding: "48px 24px",
       }}
     >

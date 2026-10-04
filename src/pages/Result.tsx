@@ -98,10 +98,10 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function Notices() {
   return (
-    <div data-testid="result-notices">
+    <div data-testid="result-notices" style={{ padding: '0 20px', wordBreak: 'keep-all' }}>
       {NOTICES.map((line) => (
         <div key={line}>
-          <Paragraph.Text typography="t7" color="var(--adaptiveGrey600)">
+          <Paragraph.Text typography="t6" color="var(--adaptiveGrey700)">
             {line}
           </Paragraph.Text>
           <Spacing size={4} />
