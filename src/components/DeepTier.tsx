@@ -25,6 +25,12 @@ function days(tenths: number): string {
   return `${formatNumber(tenths / 10)}일`;
 }
 
+function todayYmd(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /** 순수 계산 — 예외는 호출부가 에러 상태로 바꾼다. */
 function compute(today: string, expiryDate: string, remainingTenths: number): Plan {
   try {
@@ -52,12 +58,15 @@ export function DeepTier({
   remainingTenths: number;
 }) {
   const [tab, setTab] = useState(0);
+  // 다시 시도를 누른 시점의 오늘 — 처음엔 부모가 준 today
+  const [retryToday, setRetryToday] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const haptic = useHaptic();
 
-  // attempt가 바뀔 때마다 다시 계산한다(다시 시도).
+  const effectiveToday = retryToday ?? today;
+  // attempt가 바뀔 때마다 다시 계산한다(같은 날이어도 재시도).
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const plan = useMemo(() => compute(today, expiryDate, remainingTenths), [today, expiryDate, remainingTenths, attempt]);
+  const plan = useMemo(() => compute(effectiveToday, expiryDate, remainingTenths), [effectiveToday, expiryDate, remainingTenths, attempt]);
 
   const onTabChange = useCallback(
     (index: number) => {
@@ -74,6 +83,7 @@ export function DeepTier({
 
   const retry = useCallback(() => {
     logClick('deep_retry');
+    setRetryToday(todayYmd());
     setAttempt((n) => n + 1);
   }, []);
 
@@ -87,7 +97,7 @@ export function DeepTier({
           title="계산 중 문제가 생겼어요"
           description="연휴 조합만 불러오지 못했어요. 위 결과는 그대로예요."
           action={
-            <Button variant="weak" size="medium" onClick={retry}>
+            <Button variant="weak" size="medium" aria-label="다시 시도" onClick={retry}>
               다시 시도
             </Button>
           }

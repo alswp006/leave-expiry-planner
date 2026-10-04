@@ -9,11 +9,11 @@ import { DeepTier } from '../components/DeepTier';
 import { TossRewardAd } from '@/components/TossRewardAd';
 import { EmptyState, LoadingState } from '../components/StateView';
 import { logClick } from '@/lib/analytics';
-import { formatDot, isValidYmd } from '@/lib/date';
-import { loadInput } from '@/lib/inputStore';
+import { formatDot } from '@/lib/date';
 import { summarize } from '@/lib/summary';
 import type { AppInput, AppResult, BucketKind } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
+import { validateInput } from '@/lib/validation';
 
 type View =
   | { kind: 'loading' }
@@ -40,17 +40,15 @@ function todayYmd(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-/** route state에서 AppInput을 꺼낸다. 모양이 틀리거나 날짜·값이 유효하지 않으면 null(결과 없음). */
+/** route state에서 AppInput을 꺼낸다. 모양이 틀리거나 validateInput을 통과하지 못하면 null(결과 없음). */
 function readInput(state: unknown, today: string): AppInput | null {
   if (typeof state !== 'object' || state === null) return null;
   const raw = (state as { input?: unknown }).input;
   if (typeof raw !== 'object' || raw === null) return null;
   const { hireDate, basis, monthlySalary, usedDays } = raw as Record<string, unknown>;
-  if (typeof hireDate !== 'string' || !isValidYmd(hireDate) || hireDate > today) return null;
   if (basis !== 'hire' && basis !== 'fiscal') return null;
-  if (typeof monthlySalary !== 'number' || !Number.isFinite(monthlySalary) || monthlySalary < 1) return null;
-  if (typeof usedDays !== 'number' || !Number.isFinite(usedDays) || usedDays < 0) return null;
-  return { hireDate, basis, monthlySalary, usedDays };
+  if (Object.keys(validateInput({ hireDate, monthlySalary, usedDays }, today)).length > 0) return null;
+  return { hireDate, basis, monthlySalary, usedDays } as AppInput;
 }
 
 /** summarize를 돌리고 숫자가 깨졌으면 throw한다 — 호출부가 에러 상태로 바꾼다. */
@@ -73,9 +71,7 @@ function calculate(input: AppInput, today: string): AppResult {
 /** 누른 시점의 오늘로 계산한다. 예외는 에러 상태로 돌려 에러 로깅 없이 처리한다. */
 function compute(state: unknown): View {
   const today = todayYmd();
-  // 새로고침 등으로 route state가 사라지면 마지막 입력으로 복원한다
-  const hasState = typeof state === 'object' && state !== null && 'input' in state;
-  const input = hasState ? readInput(state, today) : readInput({ input: loadInput() }, today);
+  const input = readInput(state, today);
   if (!input) return { kind: 'empty' };
   try {
     return { kind: 'ready', input, result: calculate(input, today) };
@@ -143,6 +139,7 @@ export default function Result() {
         bottom={
           <SubmitFooter
             label="다시 계산하기"
+            ariaLabel="다시 계산하기"
             onClick={() => {
               logClick('result_recalc');
               goHome();
@@ -222,8 +219,8 @@ export default function Result() {
         top={top}
         bottom={
           <ButtonStack
-            primary={{ label: '다시 시도', onClick: retry }}
-            secondary={{ label: '입력 화면으로', onClick: goHome }}
+            primary={{ label: '다시 시도', ariaLabel: '다시 시도', onClick: retry }}
+            secondary={{ label: '입력 화면으로', ariaLabel: '입력 화면으로', onClick: goHome }}
           />
         }
       >
@@ -240,7 +237,7 @@ export default function Result() {
 
   if (view.kind === 'empty') {
     return (
-      <ScreenScaffold top={top} bottom={<SubmitFooter label="입력하러 가기" onClick={goHome} />}>
+      <ScreenScaffold top={top} bottom={<SubmitFooter label="입력하러 가기" ariaLabel="입력하러 가기" onClick={goHome} />}>
         <EmptyState
           testId="result-empty"
           title="계산된 결과가 없어요"

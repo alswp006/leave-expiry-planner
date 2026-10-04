@@ -94,8 +94,8 @@ export function ButtonStack({
   primary,
   secondary,
 }: {
-  primary: { label: ReactNode; onClick: () => void; disabled?: boolean };
-  secondary?: { label: ReactNode; onClick: () => void };
+  primary: { label: ReactNode; ariaLabel?: string; onClick: () => void; disabled?: boolean };
+  secondary?: { label: ReactNode; ariaLabel?: string; onClick: () => void };
 }) {
   return (
     <div
@@ -119,6 +119,7 @@ export function ButtonStack({
           primary.onClick();
         }}
         disabled={primary.disabled}
+        aria-label={primary.ariaLabel}
       >
         {primary.label}
       </Button>
@@ -126,6 +127,7 @@ export function ButtonStack({
         <Button
           variant="weak"
           display="block"
+          aria-label={secondary.ariaLabel}
           onClick={() => {
             fireHaptic("tickWeak");
             secondary.onClick();
