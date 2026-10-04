@@ -54,7 +54,7 @@ describe("Home 입력 화면", () => {
 
   it("AC-1[P0]: blur 이후에만 에러가 켜진다 (잘못된 월급 입력 후 blur)", () => {
     renderHome();
-    fireEvent.change(salary(), { target: { value: "0" } });
+    fireEvent.change(salary(), { target: { value: "100000001" } });
     expect(salary()).not.toHaveAttribute("aria-invalid", "true");
     fireEvent.blur(salary());
     expect(salary()).toHaveAttribute("aria-invalid", "true");

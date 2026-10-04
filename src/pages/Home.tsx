@@ -10,7 +10,7 @@ import { displayHireDate, displaySalary, maskHireDate, maskSalary, maskUsedDays 
 import { loadInput, saveInput } from '@/lib/inputStore';
 import { summarize } from '@/lib/summary';
 import type { AppInput, Basis, RouteState } from '@/lib/types';
-import { validateInput } from '@/lib/validation';
+import { validateInputOptionalSalary as validateInput } from '@/lib/validation';
 import type { InputErrors } from '@/lib/validation';
 
 type Field = 'hireDate' | 'monthlySalary' | 'usedDays';
@@ -82,7 +82,6 @@ export default function Home() {
   let hint: string | undefined;
   if (!valid) {
     if (hireDigits === '') hint = '입사일을 입력해 주세요';
-    else if (salaryDigits === '') hint = '월급을 입력해 주세요';
     else hint = errors.hireDate ?? errors.monthlySalary ?? errors.usedDays;
   }
 
@@ -172,7 +171,7 @@ export default function Home() {
         onFocus={scrollToCenter}
         onBlur={() => touch('monthlySalary')}
         hasError={shown('monthlySalary') !== undefined}
-        help={shown('monthlySalary') ?? '연차수당(1일 통상임금)을 계산할 때만 써요'}
+        help={shown('monthlySalary') ?? '선택 항목이에요. 넣으면 사라지는 금액도 계산해요'}
       />
 
       <Spacing size={16} />

@@ -13,7 +13,7 @@ import { formatDot } from '@/lib/date';
 import { summarize } from '@/lib/summary';
 import type { AppInput, AppResult, BucketKind } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
-import { validateInput } from '@/lib/validation';
+import { validateInputOptionalSalary as validateInput } from '@/lib/validation';
 
 type View =
   | { kind: 'loading' }
@@ -132,6 +132,7 @@ export default function Result() {
     const hasExpiring = nearest !== null && result.dDay !== null && result.totalRemainingTenths > 0;
     const liveBuckets = result.buckets;
     const next = result.nextAccrual;
+    const hasSalary = view.input.monthlySalary > 0;
 
     return (
       <ScreenScaffold
@@ -161,13 +162,21 @@ export default function Result() {
             value={<Paragraph.Text typography="t2">지금 사라질 연차가 없어요</Paragraph.Text>}
           />
         )}
-        <Spacing size={16} />
+        <Spacing size={8} />
+        <div style={{ padding: '0 8px', wordBreak: 'keep-all' }}>
+          <Paragraph.Text typography="t7" color="var(--adaptiveGrey600)">
+            남은 일수와 금액은 모두 추정치예요
+          </Paragraph.Text>
+        </div>
+        <Spacing size={8} />
         <Card testId="result-detail">
           <InfoRow label="남은 연차 합계" value={days(result.totalRemainingTenths)} />
-          {hasExpiring ? (
+          {hasExpiring && hasSalary ? (
             <InfoRow label="못 쓰면 사라지는 금액" value={`${formatNumber(result.expiringAmount)}원`} />
           ) : null}
-          <InfoRow label="1일 통상임금(추정)" value={`${formatNumber(result.dailyWage)}원`} />
+          {hasSalary ? (
+            <InfoRow label="1일 통상임금(추정)" value={`${formatNumber(result.dailyWage)}원`} />
+          ) : null}
           <InfoRow
             label="다음 발생 예정"
             value={next ? `${formatDot(next.date)} · +${days(next.tenths)}` : '예정된 발생이 없어요'}
@@ -241,7 +250,7 @@ export default function Result() {
         <EmptyState
           testId="result-empty"
           title="계산된 결과가 없어요"
-          description="입사일과 월급을 넣으면 사라질 연차를 알려드려요."
+          description="입사일을 넣으면 사라질 연차를 알려드려요."
         />
         <Notices />
         <Spacing size={96} />

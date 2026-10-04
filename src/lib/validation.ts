@@ -44,3 +44,14 @@ export function validateInput(
 
   return errors;
 }
+
+/** 월급은 선택 항목 — 비워 두면(0) 월급 오류만 건너뛰고 나머지를 검사한다. */
+export function validateInputOptionalSalary(
+  raw: Partial<Record<keyof AppInput, unknown>>,
+  today: string,
+  availableTenths?: number,
+): InputErrors {
+  const errors = validateInput(raw, today, availableTenths);
+  if (raw.monthlySalary === 0) delete errors.monthlySalary;
+  return errors;
+}
