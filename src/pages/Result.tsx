@@ -70,7 +70,7 @@ function calculate(input: AppInput, today: string): AppResult {
   return result;
 }
 
-/** 누른 시점의 오늘로 계산한다. 예외는 에러 상태로 돌려 console.error를 남기지 않는다. */
+/** 누른 시점의 오늘로 계산한다. 예외는 에러 상태로 돌려 에러 로깅 없이 처리한다. */
 function compute(state: unknown): View {
   const today = todayYmd();
   // 새로고침 등으로 route state가 사라지면 마지막 입력으로 복원한다
