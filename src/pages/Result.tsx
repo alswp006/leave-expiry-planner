@@ -5,6 +5,8 @@ import { ScreenScaffold } from '../components/ScreenScaffold';
 import { SubmitFooter, ButtonStack } from '../components/BottomCTA';
 import { Card } from '../components/Card';
 import { SummaryHero } from '../components/SummaryHero';
+import { DeepTier } from '../components/DeepTier';
+import { TossRewardAd } from '@/components/TossRewardAd';
 import { EmptyState, LoadingState } from '../components/StateView';
 import { logClick } from '@/lib/analytics';
 import { formatDot, isValidYmd } from '@/lib/date';
@@ -188,7 +190,19 @@ export default function Result() {
             </Card>
           </>
         ) : null}
-        {/* DeepTier: 잠금 층(TossRewardAd 안의 Tab「월별 플랜」/「연휴 조합」)은 다음 패킷이 여기에 붙인다. */}
+        {/* 더 깊은 층만 게이트 안 — 핵심 답은 위에서 이미 그려졌다. 남은 연차가 없으면 게이트도 없다. */}
+        {hasExpiring ? (
+          <>
+            <Spacing size={16} />
+            <TossRewardAd slotId={import.meta.env.VITE_TOSS_AD_SLOT_ID ?? ''}>
+              <DeepTier
+                today={result.today}
+                expiryDate={nearest.expiryDate}
+                remainingTenths={nearest.remainingTenths}
+              />
+            </TossRewardAd>
+          </>
+        ) : null}
         <Spacing size={16} />
         <Notices />
         <Spacing size={96} />

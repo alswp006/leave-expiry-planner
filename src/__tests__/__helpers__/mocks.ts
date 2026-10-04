@@ -625,9 +625,10 @@ export function mockTossRewardAd() {
     TossRewardAd: ({ children, onReward }: any) => {
       // Auto-trigger onReward in tests to unlock content
       if (onReward) setTimeout(onReward, 0);
-      return children;
+      // 게이트 경계를 테스트가 볼 수 있게 감싼다(게이트 안/밖 구분: getByTestId("reward-gate")).
+      return React.createElement("div", { "data-testid": "reward-gate" }, children);
     },
-    default: ({ children }: any) => children,
+    default: ({ children }: any) => React.createElement("div", { "data-testid": "reward-gate" }, children),
   }));
 }
 
