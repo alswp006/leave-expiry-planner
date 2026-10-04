@@ -1,0 +1,35 @@
+{
+  "koreanName": "연차 소멸 계산기",
+  "englishName": "Leave Expiry Planner",
+  "appName": "leave-expiry-planner",
+  "ageRating": "만 19세 이상",
+  "appType": "비게임",
+  "supportEmail": "support@aifactory.dev",
+  "category": {
+    "primary": "편의/유틸"
+  },
+  "subtitle": "연차 소멸일 한눈에 보기",
+  "description": "입사일과 월급을 입력하고 사용한 연차를 넣으면, 가장 먼저 사라질 연차의 D-day, 남은 연차 일수, 미사용 연차수당 추정액을 3초 안에 확인할 수 있습니다. 입사기준과 회계연도 기준을 선택해 정확하게 계산하고, 리워드 광고를 보면 월별 소진 플랜과 연휴 활용 조합도 제안받을 수 있습니다.",
+  "searchKeywords": [
+    "연차",
+    "연차계산",
+    "연차소멸",
+    "휴가",
+    "연차수당",
+    "직장인",
+    "D-day",
+    "금전환산"
+  ],
+  "keyFeatures": [
+    "연차 소멸 D-day 확인",
+    "미사용 연차 수당 추정",
+    "월별 소진 플랜 제안",
+    "입사기준·회계연도 선택"
+  ],
+  "_notes": {
+    "appTypeSuspected": false,
+    "appTypeReasons": [],
+    "reviewLevel": null,
+    "reviewReasons": []
+  }
+}
