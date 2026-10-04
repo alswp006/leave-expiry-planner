@@ -33,7 +33,10 @@ export function SubmitFooter({
   disabled,
   loading,
   hint,
+  ariaLabel,
 }: {
+  /** 스크린 리더용 이름 — 버튼 라벨과 같은 뜻으로 준다. */
+  ariaLabel?: string;
   label: ReactNode;
   onClick: () => void;
   disabled?: boolean;
@@ -54,6 +57,7 @@ export function SubmitFooter({
       }}
       disabled={disabled || loading}
       loading={loading}
+      {...(ariaLabel ? { "aria-label": ariaLabel } : {})}
       // hint가 없으면 prop 자체를 넘기지 않는다 — 기존 호출부의 렌더 결과를 한 글자도 바꾸지 않는다.
       {...(hasHint(hint) ? { topAccessory: <SubmitFooterHint>{hint}</SubmitFooterHint> } : {})}
     >

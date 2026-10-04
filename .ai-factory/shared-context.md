@@ -159,6 +159,8 @@ export interface RouteState {
     contract.ts
     date.ts
     holidays.ts
+    inputMask.ts
+    inputStore.ts
     plan.ts
     review.ts
     share.ts
@@ -166,6 +168,7 @@ export interface RouteState {
     summary.ts
     types.ts
     utils.ts
+    validation.ts
   main.tsx
   pages/
     Home.tsx
@@ -184,6 +187,8 @@ export interface RouteState {
 - contract.ts: export type AppInput =; export type LeaveBucket =; export type BridgeCombo =; export type MonthPlan =; export type AppResult =; export type RouteState =; export type parseYmdFn = (s: string) => string | null; export type isValidYmdFn = (ymd: string) => boolean
 - date.ts: export interface Ymd; export function parseYmd(ymd: string): Ymd; export function isValidYmd(ymd: string): boolean; export function addMonthsClamp(ymd: string, months: number): string; export function addYears(ymd: string, years: number): string; export function addDays(ymd: string, days: number): string; export function diffDays(from: string, to: string): number; export function formatDot(ymd: string): string
 - holidays.ts: export const HOLIDAYS: string[] = [ // 2026 '2026-01-01', '2026-02-16', '2026-02-17', '2026-02-18', // 설 연휴 '2026-03-02'; export const holidays: string[] = HOLIDAYS; export const HOLIDAY_COVERAGE_END = '2027-12-31'
+- inputMask.ts: export function maskHireDate(raw: string): string; export function displayHireDate(digits: string): string; export function maskSalary(raw: string): string; export function displaySalary(digits: string): string; export function maskUsedDays(raw: string): string
+- inputStore.ts: export const INPUT_STORAGE_KEY = 'leave-expiry-planner:lastInput'; export function saveInput(input: AppInput): void; export function loadInput(): AppInput | null; export const saveAppInput: (input: AppInput) => void = saveInput; export const loadAppInput: () => AppInput | null = loadInput
 - plan.ts: export function buildMonthlyPlan( today: string, expiryDate: string, remainingTenths: number, combos: BridgeCombo[], ): 
 - review.ts: export function requestReviewOnce(key: string = REVIEW_REQUESTED_KEY): void
 - share.ts: export interface ShareAppOptions; export async function shareApp(opts: ShareAppOptions): Promise<void>
@@ -191,6 +196,7 @@ export interface RouteState {
 - summary.ts: export function applyUsage(buckets: LeaveBucket[], usedTenths: number): LeaveBucket[]; export function summarize(input: AppInput, today: string): AppResult
 - types.ts: export type Basis = 'hire' | 'fiscal'; export interface AppInput; export type BucketKind = 'monthly' | 'prorated' | 'annual'; export interface LeaveBucket; export interface AppResult; export interface MonthPlan; export interface BridgeCombo; export interface RouteState
 - utils.ts: export function cn(...classes: (string | boolean | undefined | null)[]): string; export function formatNumber(n: number): string; export function formatCurrency(n: number, currency = 'KRW'): string
+- validation.ts: export type InputErrors = Partial<Record<keyof AppInput, string>>; export const MIN_HIRE_DATE = '1980-01-01'; export const MAX_SALARY = 100_000_000; export function validateInput( raw: Partial<Record<keyof AppInput, unknown>>, today: string, availableTenths?: number, )
 
 ### Components (src/components/)
 - AdSlot.tsx: AdSlot
@@ -209,14 +215,14 @@ export interface RouteState {
 - TossRewardAd.tsx: TossRewardAd
 
 ### Module Dependencies (import graph)
-  lib/accrual.ts → imports: lib/types, lib/date
-  lib/summary.ts → imports: lib/types, lib/date, lib/accrual
+  lib/accrual.ts → imports: lib/types, lib...
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
 - 0001: 타입 정의 + 날짜 유틸 (files: src/lib/types.ts, src/lib/date.ts)
 - 0002: 연차 발생 계산 + 사용 차감·요약 (files: src/lib/accrual.ts, src/lib/summary.ts)
 - 0003: 공휴일 + 연휴 조합 + 월별 플랜 (files: src/lib/holidays.ts, src/lib/bridges.ts, src/lib/plan.ts)
+- 0004: 입력 검증·마스킹·안전한 저장 (files: src/lib/validation.ts, src/lib/inputMask.ts, src/lib/inputStore.ts)
 
 ## Available exports from existing files
 // src/App.tsx

@@ -1,73 +1,209 @@
-import { Top, Paragraph, Spacing, ListRow, Button } from '@toss/tds-mobile';
+import { useMemo, useState } from 'react';
+import type { FocusEvent } from 'react';
+import { Top, TextField, Chip, ChipItem, Spacing, Paragraph } from '@toss/tds-mobile';
+import { generateHapticFeedback } from '@apps-in-toss/web-framework';
 import { useNavigate } from 'react-router-dom';
 import { ScreenScaffold } from '../components/ScreenScaffold';
-import { SummaryHero } from '../components/SummaryHero';
-import { Card } from '../components/Card';
+import { SubmitFooter } from '../components/BottomCTA';
+import { EmptyState } from '../components/StateView';
+import { logClick } from '@/lib/analytics';
+import { displayHireDate, displaySalary, maskHireDate, maskSalary, maskUsedDays } from '@/lib/inputMask';
+import { loadInput, saveInput } from '@/lib/inputStore';
+import { summarize } from '@/lib/summary';
+import type { AppInput, Basis, RouteState } from '@/lib/types';
+import { validateInput } from '@/lib/validation';
+import type { InputErrors } from '@/lib/validation';
 
-/**
- * Golden Home page — 대시보드/탭-루트 골든 레퍼런스.
- *
- * 다른 페이지를 쓸 때 이 패턴을 모방하라:
- * - ScreenScaffold로 감싼다(raw fragment 골격 금지) — safe-area + 100dvh 자동 처리.
- * - 화면 최상단에 SummaryHero로 시각 앵커를 만든다('휑함'의 가장 큰 원인은 앵커 부재).
- *   데이터가 있으면 value에 <Amount value={n} unit="원" typography="t1" />로 핵심 숫자를 크게 박아라.
- * - 1차 진입 액션은 SummaryHero 카드 내부 버튼(display="block", 전체폭)에 둔다.
- *   → 화면 중앙 부유/좌측 글자폭 버튼 금지. 하단 TabBar가 있으면 SubmitFooter와 겹치므로 카드 안에.
- * - 핵심 정보는 raw <div>가 아니라 Card로 묶어 위계를 만든다.
- * - 하단 탭이 필요하면(2~5탭): bottom={<FloatingTabBar items={[{label,path}...]} />}.
- *   ('TDS TabBar'는 존재하지 않는다 — 직접 만들지 말고 FloatingTabBar를 써라.)
- * - 카피는 CLAUDE.md "카피 규칙 — AI 냄새 금지"를 따른다: 기능 나열식 홍보 문구·상투구·
- *   generic 버튼("시작하기") 금지. 이 파일의 예시 문구도 앱 맥락에 맞게 교체 대상이다.
- *
- * Scaffold tokens (replaced by scaffold-toss.ts at project creation):
- *   Leave Expiry Planner -> the app's display name
- *   내 연차 언제 사라져요? 입사일만 넣으면 소멸 D-day와 못 쓰면 날아가는 금액까지    -> the one-line description
- */
+type Field = 'hireDate' | 'monthlySalary' | 'usedDays';
 
-// ⚠ 이 목록은 골격 예시다 — 앱의 실제 콘텐츠(핵심 지표·최근 기록·바로가기)로 반드시 교체하라.
-// '간편한 사용/빠른 처리' 같은 기능 나열식 홍보 문구는 카피 규칙(CLAUDE.md "AI 냄새 금지") 위반이다.
-// 사용자가 이 화면에서 실제로 확인할 정보를 넣어라 — 아래처럼 데이터가 사는 행으로.
-const HIGHLIGHTS = [
-  { title: '오늘', description: '아직 기록이 없어요' },
-  { title: '이번 주', description: '기록 3건 · 평균 12분' },
+const BASIS_OPTIONS: { value: Basis; label: string }[] = [
+  { value: 'hire', label: '입사일 기준' },
+  { value: 'fiscal', label: '회계연도 기준(1월 1일)' },
 ];
+
+function todayYmd(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 'YYYYMMDD' 8자리면 'YYYY-MM-DD', 아니면 빈 문자열(검증이 오류로 잡는다). */
+function digitsToYmd(digits: string): string {
+  if (digits.length !== 8) return '';
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
+function tickWeak() {
+  try {
+    Promise.resolve(generateHapticFeedback({ type: 'tickWeak' })).catch(() => {});
+  } catch {
+    /* WebView 밖에서는 SDK가 throw — 무시 */
+  }
+}
+
+function scrollToCenter(e: FocusEvent<HTMLInputElement>) {
+  e.currentTarget.scrollIntoView({ block: 'center' });
+}
 
 export default function Home() {
   const navigate = useNavigate();
+  // 저장값이 없거나 손상됐으면 null → Empty State + 빈 필드
+  const [stored] = useState<AppInput | null>(() => loadInput());
+  const [hireDigits, setHireDigits] = useState(() => (stored ? stored.hireDate.replace(/\D/g, '') : ''));
+  const [basis, setBasis] = useState<Basis>(stored?.basis ?? 'hire');
+  const [salaryDigits, setSalaryDigits] = useState(() => (stored ? maskSalary(String(stored.monthlySalary)) : ''));
+  const [usedText, setUsedText] = useState(() => (stored && stored.usedDays > 0 ? String(stored.usedDays) : ''));
+  const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({});
+
+  const today = todayYmd();
+  const input: AppInput = {
+    hireDate: digitsToYmd(hireDigits),
+    basis,
+    monthlySalary: salaryDigits === '' ? 0 : Number(salaryDigits),
+    usedDays: usedText === '' ? 0 : Number(usedText),
+  };
+
+  // 지금 쓸 수 있는 연차(×10) — 사용 연차 상한 검사에 쓴다. 입사일이 유효할 때만 계산한다.
+  const availableTenths = useMemo(() => {
+    if (!input.hireDate || validateInput({ hireDate: input.hireDate }, today).hireDate) return undefined;
+    try {
+      return summarize({ hireDate: input.hireDate, basis, monthlySalary: 1, usedDays: 0 }, today)
+        .totalRemainingTenths;
+    } catch {
+      return undefined;
+    }
+  }, [input.hireDate, basis, today]);
+
+  const errors: InputErrors = validateInput(input, today, availableTenths);
+  const valid = Object.keys(errors).length === 0;
+  const shown = (field: Field): string | undefined => (touched[field] ? errors[field] : undefined);
+
+  const touch = (field: Field) => setTouched((t) => (t[field] ? t : { ...t, [field]: true }));
+
+  let hint: string | undefined;
+  if (!valid) {
+    if (hireDigits === '') hint = '입사일을 입력하면 계산할 수 있어요';
+    else if (salaryDigits === '') hint = '월급을 입력하면 계산할 수 있어요';
+    else hint = errors.hireDate ?? errors.monthlySalary ?? errors.usedDays;
+  }
+
+  const submit = () => {
+    if (!valid) return;
+    logClick('calculate_submit');
+    saveInput(input);
+    const result = summarize(input, today);
+    const state: RouteState = { input, result };
+    navigate('/result', { state });
+  };
 
   return (
     <ScreenScaffold
       top={<Top title={<Top.TitleParagraph>연차 소멸 계산기</Top.TitleParagraph>} />}
+      bottom={
+        <SubmitFooter
+          label="연차 계산하기"
+          ariaLabel="연차 계산하기"
+          onClick={submit}
+          disabled={!valid}
+          hint={hint}
+        />
+      }
     >
-      {/* 시각 앵커: 헤드라인 + 카드 내 진입 버튼(부유 금지, display="block" 전체폭).
-          데이터 앱이면 value를 <Amount typography="t1" />(핵심 숫자)로 교체하라. */}
-      <SummaryHero
-        label="연차 소멸 계산기"
-        value={<Paragraph.Text typography="t2">내 연차 언제 사라져요? 입사일만 넣으면 소멸 D-day와 못 쓰면 날아가는 금액까지</Paragraph.Text>}
-        caption="로그인 없이 바로 쓸 수 있어요"
-        action={
-          // 라벨은 앱의 핵심 행동 동사로 교체하라 — "연봉 계산하기"/"기록 남기기" 등.
-          // generic "시작하기"/"확인"은 카피 규칙 위반. onClick도 실제 첫 화면 경로로.
-          <Button variant="fill" display="block" onClick={() => navigate('/')}>
-            첫 결과 보기
-          </Button>
-        }
-        testId="home-hero"
+      {stored === null && (
+        <>
+          <EmptyState
+            testId="home-empty"
+            title="아직 입력한 정보가 없어요"
+            description="입사일과 월급을 넣으면 연차가 사라지는 날을 알려드려요"
+          />
+          <Spacing size={8} />
+        </>
+      )}
+
+      <TextField
+        variant="box"
+        label="입사일"
+        labelOption="sustain"
+        aria-label="입사일"
+        placeholder="예: 2025.03.15"
+        inputMode="numeric"
+        enterKeyHint="next"
+        value={displayHireDate(hireDigits)}
+        onChange={(e) => setHireDigits(maskHireDate(e.target.value))}
+        onFocus={scrollToCenter}
+        onBlur={() => touch('hireDate')}
+        hasError={shown('hireDate') !== undefined}
+        help={shown('hireDate')}
       />
 
-      <Spacing size={24} />
+      <Spacing size={16} />
 
-      {/* 핵심 정보는 Card로 묶기(raw div 금지) — 위계 생성 */}
-      <Card testId="home-highlights">
-        {HIGHLIGHTS.map((h, idx) => (
-          <ListRow
-            key={idx}
-            contents={<ListRow.Texts type="2RowTypeA" top={h.title} bottom={h.description} />}
-          />
+      {/* 필드 라벨 왼쪽 선에 맞춘다 — TextField 내부 인셋과 같은 값 */}
+      <div style={{ padding: '0 20px' }}>
+        <Paragraph.Text typography="t6" color="var(--adaptiveGrey600)">
+          연차를 세는 기준
+        </Paragraph.Text>
+      </div>
+      <Spacing size={8} />
+      <Chip kind="select" wrap>
+        {BASIS_OPTIONS.map((o) => (
+          <ChipItem
+            key={o.value}
+            selected={basis === o.value}
+            aria-label={o.label}
+            onClick={() => {
+              tickWeak();
+              setBasis(o.value);
+            }}
+          >
+            {o.label}
+          </ChipItem>
         ))}
-      </Card>
+      </Chip>
 
-      <Spacing size={24} />
+      <Spacing size={16} />
+
+      <TextField
+        variant="box"
+        label="월급(세전)"
+        labelOption="sustain"
+        aria-label="월급(세전)"
+        placeholder="예: 3,200,000"
+        inputMode="numeric"
+        enterKeyHint="next"
+        suffix="원"
+        value={displaySalary(salaryDigits)}
+        onChange={(e) => setSalaryDigits(maskSalary(e.target.value))}
+        onFocus={scrollToCenter}
+        onBlur={() => touch('monthlySalary')}
+        hasError={shown('monthlySalary') !== undefined}
+        help={shown('monthlySalary')}
+      />
+
+      <Spacing size={16} />
+
+      <TextField
+        variant="box"
+        label="올해 사용한 연차"
+        labelOption="sustain"
+        aria-label="올해 사용 연차(일)"
+        placeholder="예: 2.5"
+        inputMode="decimal"
+        enterKeyHint="done"
+        suffix="일"
+        value={usedText}
+        onChange={(e) => setUsedText(maskUsedDays(e.target.value))}
+        onFocus={scrollToCenter}
+        onBlur={() => touch('usedDays')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') submit();
+        }}
+        hasError={shown('usedDays') !== undefined}
+        help={shown('usedDays') ?? '비우면 0일로 계산해요'}
+      />
+
+      {/* 하단 고정 CTA에 가리지 않도록 여유를 둔다 */}
+      <Spacing size={120} />
     </ScreenScaffold>
   );
 }
