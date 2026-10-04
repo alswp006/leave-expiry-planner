@@ -37,12 +37,12 @@ export default function Home() {
 
   return (
     <ScreenScaffold
-      top={<Top title={<Top.TitleParagraph>Leave Expiry Planner</Top.TitleParagraph>} />}
+      top={<Top title={<Top.TitleParagraph>연차 소멸 계산기</Top.TitleParagraph>} />}
     >
       {/* 시각 앵커: 헤드라인 + 카드 내 진입 버튼(부유 금지, display="block" 전체폭).
           데이터 앱이면 value를 <Amount typography="t1" />(핵심 숫자)로 교체하라. */}
       <SummaryHero
-        label="Leave Expiry Planner"
+        label="연차 소멸 계산기"
         value={<Paragraph.Text typography="t2">내 연차 언제 사라져요? 입사일만 넣으면 소멸 D-day와 못 쓰면 날아가는 금액까지</Paragraph.Text>}
         caption="로그인 없이 바로 쓸 수 있어요"
         action={
