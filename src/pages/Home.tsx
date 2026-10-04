@@ -5,7 +5,6 @@ import { generateHapticFeedback } from '@apps-in-toss/web-framework';
 import { useNavigate } from 'react-router-dom';
 import { ScreenScaffold } from '../components/ScreenScaffold';
 import { SubmitFooter } from '../components/BottomCTA';
-import { EmptyState } from '../components/StateView';
 import { logClick } from '@/lib/analytics';
 import { displayHireDate, displaySalary, maskHireDate, maskSalary, maskUsedDays } from '@/lib/inputMask';
 import { loadInput, saveInput } from '@/lib/inputStore';
@@ -47,7 +46,7 @@ function scrollToCenter(e: FocusEvent<HTMLInputElement>) {
 
 export default function Home() {
   const navigate = useNavigate();
-  // 저장값이 없거나 손상됐으면 null → Empty State + 빈 필드
+  // 저장값이 없거나 손상됐으면 null → 빈 필드
   const [stored] = useState<AppInput | null>(() => loadInput());
   const [hireDigits, setHireDigits] = useState(() => (stored ? stored.hireDate.replace(/\D/g, '') : ''));
   const [basis, setBasis] = useState<Basis>(stored?.basis ?? 'hire');
@@ -109,17 +108,6 @@ export default function Home() {
         />
       }
     >
-      {stored === null && !hireDigits && !salaryDigits && !usedText && (
-        <>
-          <EmptyState
-            testId="home-empty"
-            title="아직 입력한 정보가 없어요"
-            description="입사일과 월급을 넣으면 연차가 사라지는 날을 알려드려요"
-          />
-          <Spacing size={8} />
-        </>
-      )}
-
       <TextField
         variant="box"
         label="입사일"
