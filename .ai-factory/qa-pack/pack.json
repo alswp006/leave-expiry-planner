@@ -1,0 +1,9 @@
+{
+  "app_id": "fac_leave_expiry_planner",
+  "name": "Leave Expiry Planner",
+  "base_url_env": "FAC_LEAVE_EXPIRY_PLANNER_BASE_URL",
+  "profile": "experimental",
+  "level": "smoke",
+  "created_by": "factory",
+  "created_at": "2026-10-05"
+}
