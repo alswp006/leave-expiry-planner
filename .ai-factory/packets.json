@@ -1,0 +1,334 @@
+[
+  {
+    "id": "0001",
+    "title": "타입 정의 + 날짜 유틸",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "SPEC의 Data Model(Basis, AppInput, LeaveBucket, AppResult, MonthPlan, BridgeCombo, RouteState)을 types.ts에서 그대로 export합니다. date.ts에는 parseYmd, isValidYmd, addMonthsClamp(말일 보정), addYears, addDays, diffDays, formatDot, isWeekend를 순수 함수로 구현합니다.",
+      "acceptance_criteria": [
+        "addMonthsClamp('2026-01-31', 1) === '2026-02-28'",
+        "diffDays('2026-10-05','2027-03-14') === 160",
+        "isValidYmd('2023-02-30') === false",
+        "formatDot('2027-03-14') === '2027.03.14'",
+        "types.ts가 SPEC Data Model의 모든 타입을 같은 필드명으로 export합니다"
+      ]
+    },
+    "covers": [
+      "F1-AC-1",
+      "F2-AC-1"
+    ],
+    "files": [
+      "src/lib/types.ts",
+      "src/lib/date.ts"
+    ],
+    "definition_of_done": [
+      "tsc --noEmit 통과",
+      "date.ts에서 Date 객체를 쓸 때 로컬 기준으로 YYYY-MM-DD 문자열을 반환",
+      "React/DOM import 0건"
+    ],
+    "depends_on": [],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [],
+    "ui_requirements": "UI 없음(순수 타입·함수)"
+  },
+  {
+    "id": "0002",
+    "title": "연차 발생 계산 + 사용 차감·요약",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "accrual.ts에 buildBuckets(input, today)와 getNextAccrual(input, today)를, summary.ts에 applyUsage(buckets, usedTenths)와 summarize(input, today)를 구현합니다. 입사일·회계연도 기준, 0.1일 정수(×10) 계산, 1일 통상임금 floor(월급÷209×8), 사라질 금액을 계산합니다.",
+      "acceptance_criteria": [
+        "입사 2026-03-15, 오늘 2026-10-05 → monthly 묶음 60(×10), 사용기한 2027-03-14, nextAccrual {2026-10-15, 10}",
+        "입사 2025-03-15·월급 3,000,000·사용 0 → dDay 160, dailyWage 114832, expiringAmount 1722480",
+        "입사 2025-07-01 회계연도 → prorated 76, 사용기한 2026-12-31, monthly 묶음 제외, expiringAmount 872723",
+        "k=1→150, k=3→160, k=5→170, k=21→250(×10); 회계연도+입사일 01-01이면 입사일 기준과 같은 목록",
+        "사용 연차는 사용기한이 빠른 묶음부터 차감되고 remainingTenths는 0 이상입니다"
+      ]
+    },
+    "covers": [
+      "F1-AC-1",
+      "F1-AC-2",
+      "F1-AC-3",
+      "F1-AC-4",
+      "F1-AC-5",
+      "F2-AC-1",
+      "F2-AC-2",
+      "F2-AC-3",
+      "F2-AC-4",
+      "F3-AC-1",
+      "F3-AC-2"
+    ],
+    "files": [
+      "src/lib/accrual.ts",
+      "src/lib/summary.ts"
+    ],
+    "definition_of_done": [
+      "today를 인자로 주입받는 순수 함수",
+      "SPEC 예시 값이 모두 그대로 나옴(vitest 또는 임시 스크립트로 확인)",
+      "tsc --noEmit 통과"
+    ],
+    "depends_on": [
+      "0001"
+    ],
+    "db_schema": "",
+    "api_contract": "summarize(input: AppInput, today: string): AppResult",
+    "dependencies": [],
+    "ui_requirements": "UI 없음(순수 함수)"
+  },
+  {
+    "id": "0003",
+    "title": "공휴일 + 연휴 조합 + 월별 플랜",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "holidays.ts에 2026~2027 공휴일 정적 배열과 HOLIDAY_COVERAGE_END를 둡니다. bridges.ts의 recommendBridges는 k=1~3 평일 조합을 효율순으로 고르고(연속 휴무 k+3 이상, 최대 3개, 누적 ≤ R), plan.ts의 buildMonthlyPlan은 R을 M개월에 나눠 배정하고 조합 날짜를 표시합니다.",
+      "acceptance_criteria": [
+        "오늘 2026-10-05, 사용기한 2026-12-31, R=76 → 10-08, 12-24, 12-31 조합 3개, 각 offDays 4",
+        "공휴일 배열을 비워 넣으면 조합 0개",
+        "buildMonthlyPlan R=150, M=6 → [30,30,30,20,20,20]; R=76, M=3 → [36,20,20]; 합계는 항상 R",
+        "조합 날짜가 들어 있는 달의 comboDates가 채워집니다",
+        "2028-01-01 이후 날짜는 주말만 휴무로 처리합니다"
+      ]
+    },
+    "covers": [
+      "F4-AC-1",
+      "F4-AC-2",
+      "F4-AC-3",
+      "F4-AC-5"
+    ],
+    "files": [
+      "src/lib/holidays.ts",
+      "src/lib/bridges.ts",
+      "src/lib/plan.ts"
+    ],
+    "definition_of_done": [
+      "순수 함수, today 주입",
+      "공휴일 목록 위에 '월력요항 대조 필요' 주석",
+      "tsc --noEmit 통과"
+    ],
+    "depends_on": [
+      "0001"
+    ],
+    "db_schema": "",
+    "api_contract": "recommendBridges(today, expiryDate, remainingTenths, holidays): BridgeCombo[]; buildMonthlyPlan(today, expiryDate, remainingTenths, combos): MonthPlan[]",
+    "dependencies": [],
+    "ui_requirements": "UI 없음(순수 함수)"
+  },
+  {
+    "id": "0004",
+    "title": "입력 검증·마스킹·안전한 저장",
+    "epic": "Epic 1: Data Layer",
+    "task": {
+      "description": "validation.ts의 validateInput(raw, today)이 필드별 오류 문구를 반환합니다(n=0 특수 문구 포함). inputMask.ts에는 입사일·월급·사용 연차 마스킹/표시 함수를 둡니다. inputStore.ts는 키 leave-expiry-planner:lastInput에 try-catch로 저장·복원하고, 형식이 맞지 않으면 null을 반환하고 키를 지웁니다.",
+      "acceptance_criteria": [
+        "AC-INPUT-2의 6가지 문구가 각 조건에서 정확히 반환됩니다",
+        "입사 2026-10-05·오늘 2026-10-05·사용 1 → usedDays '지금 쓸 수 있는 연차가 없어요', 사용 0 → 오류 없음",
+        "마스킹 예시 11개(2025-03-15→2025.03.15, 3,000,000원→3,000,000, 1234567890→123,456,789, 1.2.3→1.2, .5→0.5, abc→빈칸 등)가 그대로 나옵니다",
+        "setItem·getItem 예외, '{bad json', hireDate 2023-02-30, basis 'x' → 예외 없이 null(또는 무시)이고 손상된 키는 삭제됩니다",
+        "모든 케이스에서 console.* 호출 0건"
+      ]
+    },
+    "covers": [
+      "AC-INPUT-1",
+      "AC-INPUT-2",
+      "AC-INPUT-3",
+      "AC-INPUT-MASKING",
+      "AC-STORAGE-SAFE",
+      "F1-AC-6"
+    ],
+    "files": [
+      "src/lib/validation.ts",
+      "src/lib/inputMask.ts",
+      "src/lib/inputStore.ts"
+    ],
+    "definition_of_done": [
+      "inputStore는 템플릿 storage helper를 래핑",
+      "inputMask는 DOM/React 의존 0건",
+      "tsc --noEmit 통과"
+    ],
+    "depends_on": [
+      "0001",
+      "0002"
+    ],
+    "db_schema": "localStorage key 'leave-expiry-planner:lastInput' = JSON AppInput",
+    "api_contract": "validateInput(raw, today): Partial<Record<field,string>>; saveInput(input): void; loadInput(): AppInput|null",
+    "dependencies": [],
+    "ui_requirements": "UI 없음, 오류 문구는 해요체"
+  },
+  {
+    "id": "0005",
+    "title": "Home 입력 화면",
+    "epic": "Epic 2: Pages",
+    "task": {
+      "description": "Top, Empty State, TextField 3개(입사일·월급·사용 연차), Chip+ChipItem 기준 선택, 하단 Button과 SubmitFooter hint로 구성합니다. 마스킹·검증을 연결하고, blur 후에만 hasError를 켭니다. 계산하면 저장 후 navigate('/result', {state:{input,result}})로 이동합니다.",
+      "acceptance_criteria": [
+        "첫 화면에 hasError가 켜진 필드 0개, 빈 필드가 있으면 CTA 비활성화와 hint 표시",
+        "입사일에 2025-03-15를 붙여넣으면 2025.03.15로 보이고, 입사일·월급은 inputMode numeric, 사용 연차는 decimal",
+        "계산하면 lastInput이 저장되고 /result로 이동, 다시 진입하면 4개 필드가 미리 채워짐",
+        "lastInput에 '{bad json'을 넣고 새로고침 → Empty State, 빈 필드, 기준은 입사일 기준",
+        "TextField 포커스 시 scrollIntoView({block:'center'}) 호출, 모든 Button/TextField에 aria-label"
+      ]
+    },
+    "covers": [
+      "AC-INPUT-1",
+      "AC-INPUT-2",
+      "AC-INPUT-3",
+      "AC-INPUT-MASKING",
+      "AC-STORAGE-SAFE",
+      "AC-EMPTY",
+      "AC-KEYBOARD",
+      "AC-A11Y-1",
+      "AC-A11Y-2",
+      "AC-A11Y-3",
+      "AC-FORMAT",
+      "F1-AC-6"
+    ],
+    "files": [
+      "src/pages/Home.tsx"
+    ],
+    "definition_of_done": [
+      "TDS 컴포넌트만 사용, 여백은 Spacing만",
+      "HEX 0건, 하단 고정 요소에 env(safe-area-inset-bottom)",
+      "CTA에 haptic success, ChipItem에 tickWeak"
+    ],
+    "depends_on": [
+      "0004"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [
+      "@toss/tds-mobile",
+      "react-router-dom"
+    ],
+    "ui_requirements": "Top+EmptyState+TextField(box)×3+Chip(ChipItem×2)+하단 Button·hint, 해요체"
+  },
+  {
+    "id": "0006",
+    "title": "Result 핵심 답(무료 층)",
+    "epic": "Epic 2: Pages",
+    "task": {
+      "description": "route state를 검증한 뒤 summarize를 실행합니다. Skeleton 다음에 D-day 큰 글씨와 문장, ListRow 4행, 묶음 목록, 안내 3줄, 「다시 계산하기」를 보여 줍니다. 남은 연차 0, 결과 없음, 에러+다시 시도(누른 시점의 오늘로 재계산) 상태를 처리합니다.",
+      "acceptance_criteria": [
+        "입사 2025-03-15·3,000,000 → 'D-160', '2027.03.14까지 안 쓰면 15일이 사라져요', '1,722,480원' 표시",
+        "남은 연차 0 → '지금 사라질 연차가 없어요', 금액 행 숨김",
+        "state 없음이거나 input.hireDate '2023-02-30' → '계산된 결과가 없어요'와 「입력하러 가기」",
+        "summarize 예외 또는 dailyWage NaN → '계산 중 문제가 생겼어요'; 정상으로 돌린 뒤 「다시 시도」 → 결과 표시",
+        "모든 시나리오에서 console.error 0건, 안내 3줄 항상 표시"
+      ]
+    },
+    "covers": [
+      "F2-AC-1",
+      "F2-AC-2",
+      "F2-AC-3",
+      "F2-AC-4",
+      "F3-AC-1",
+      "F3-AC-2",
+      "F3-AC-3",
+      "AC-LOADING",
+      "AC-ERROR",
+      "AC-ERROR-2",
+      "AC-EMPTY",
+      "AC-FORMAT"
+    ],
+    "files": [
+      "src/pages/Result.tsx"
+    ],
+    "definition_of_done": [
+      "금액은 formatCurrency, 일수·D-day는 formatNumber(소수는 7.6일 형식)",
+      "TDS만 사용, 여백은 Spacing만, HEX 0건",
+      "DeepTier 자리는 주석 앵커로 남김"
+    ],
+    "depends_on": [
+      "0002",
+      "0004"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [
+      "@toss/tds-mobile",
+      "react-router-dom"
+    ],
+    "ui_requirements": "Top+큰 D-day Paragraph+ListRow 4행+묶음 ListRow+안내 Paragraph+Button, Skeleton/에러/빈 상태"
+  },
+  {
+    "id": "0007",
+    "title": "더 깊은 층 + 리워드 게이트",
+    "epic": "Epic 2: Pages",
+    "task": {
+      "description": "DeepTier 컴포넌트는 Tab(월별 플랜/연휴 조합)과 ListRow로 F4를 보여 주고, 자체 에러와 다시 시도를 처리합니다. Result에서는 남은 연차가 0보다 클 때만 TossRewardAd(slotId=VITE_TOSS_AD_SLOT_ID)로 DeepTier만 감쌉니다. 핵심 답은 게이트 바깥에 둡니다.",
+      "acceptance_criteria": [
+        "D-day·금액·묶음 목록은 TossRewardAd 바깥, 남은 연차 0이면 게이트 미렌더링",
+        "월별 행에 '연휴 조합 포함 (10/8)' 문구, 조합 0개면 '기간 안에 붙여 쓸 연휴가 없어요'",
+        "2028년 이후 기간이면 '공휴일 정보는 2027년까지 반영돼 있어요' 표시",
+        "recommendBridges 예외 → F4 영역만 '계산 중 문제가 생겼어요'와 「다시 시도」, 핵심 답은 유지",
+        "DeepTier.tsx에 setTimeout·setInterval·광고 SDK 직접 import 0건, 오프라인에서도 핵심 답 조작 가능하고 console.error 0건"
+      ]
+    },
+    "covers": [
+      "F4-AC-1",
+      "F4-AC-2",
+      "F4-AC-3",
+      "F4-AC-4",
+      "F4-AC-5",
+      "AC-REWARD",
+      "AC-REWARD-FALLBACK",
+      "AC-ERROR-2"
+    ],
+    "files": [
+      "src/components/DeepTier.tsx",
+      "src/pages/Result.tsx"
+    ],
+    "definition_of_done": [
+      "템플릿 TossRewardAd를 수정하지 않음",
+      "슬롯 ID가 없는 빌드에서도 F4 내용 표시",
+      "Tab 전환에 haptic tickWeak"
+    ],
+    "depends_on": [
+      "0003",
+      "0006"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [
+      "@toss/tds-mobile"
+    ],
+    "ui_requirements": "TossRewardAd 안에 Tab(월별 플랜/연휴 조합)+ListRow 행, 빈 상태·에러 문구"
+  },
+  {
+    "id": "0008",
+    "title": "라우팅 + 검수 점검",
+    "epic": "Epic 3: Integration",
+    "task": {
+      "description": "App.tsx에 / → Home, /result → Result 라우트를 연결합니다. 전체 흐름(입력 → 결과 → 게이트 → 다시 계산)을 점검하고, 외부 링크·window.open·외부 로깅 SDK·HEX 색상을 grep으로 제거합니다. main.tsx는 수정하지 않습니다.",
+      "acceptance_criteria": [
+        "/와 /result가 각각 Home과 Result를 렌더링",
+        "grep 결과 href=\"http, window.open, GA/Amplitude import, HEX 색상이 각각 0건",
+        "전체 흐름 동안 console.error 0건",
+        "npm run build 성공"
+      ]
+    },
+    "covers": [
+      "AC-REVIEW-1",
+      "AC-REVIEW-2",
+      "AC-REVIEW-3"
+    ],
+    "files": [
+      "src/App.tsx"
+    ],
+    "definition_of_done": [
+      "main.tsx 변경 0건",
+      "tsc --noEmit와 npm run build 통과"
+    ],
+    "depends_on": [
+      "0005",
+      "0006",
+      "0007"
+    ],
+    "db_schema": "",
+    "api_contract": "",
+    "dependencies": [
+      "react-router-dom"
+    ],
+    "ui_requirements": "Routes 2개 연결, 추가 UI 없음"
+  }
+]
