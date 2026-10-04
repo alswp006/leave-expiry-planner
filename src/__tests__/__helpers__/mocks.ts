@@ -641,7 +641,7 @@ export function mockRouter() {
     return {
       ...actual,
       useNavigate: () => mockNavigate,
-      useLocation: () => mockLocation,
+      // useLocation은 실제 라우터 것을 쓴다 — initialEntries의 state(RouteState)가 화면까지 가야 한다.
     };
   });
 }

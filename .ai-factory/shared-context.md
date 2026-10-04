@@ -223,6 +223,10 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0002: 연차 발생 계산 + 사용 차감·요약 (files: src/lib/accrual.ts, src/lib/summary.ts)
 - 0003: 공휴일 + 연휴 조합 + 월별 플랜 (files: src/lib/holidays.ts, src/lib/bridges.ts, src/lib/plan.ts)
 - 0004: 입력 검증·마스킹·안전한 저장 (files: src/lib/validation.ts, src/lib/inputMask.ts, src/lib/inputStore.ts)
+- 0005: Home 입력 화면 (files: src/pages/Home.tsx)
+
+## TDD 상태
+⚠️ TDD 테스트 파일 자동 작성에 실패했습니다. 소스 코드를 작성하기 전에 `src/__tests__/packet-XXXX.test.ts` 파일에 AC 기반 테스트를 먼저 작성하세요 (TDD red phase). 테스트 작성 후 구현하세요.
 
 ## Available exports from existing files
 // src/App.tsx
