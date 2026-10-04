@@ -142,6 +142,7 @@ export interface RouteState {
     BottomCTA.tsx
     Card.tsx
     CountUp.tsx
+    DeepTier.tsx
     FloatingTabBar.tsx
     MiniBar.tsx
     PageShell.tsx
@@ -204,6 +205,7 @@ export interface RouteState {
 - BottomCTA.tsx: SubmitFooter, ButtonStack
 - Card.tsx: Card
 - CountUp.tsx: CountUp
+- DeepTier.tsx: DeepTier
 - FloatingTabBar.tsx: FloatingTabBar
 - MiniBar.tsx: MiniBar
 - PageShell.tsx: PageShell
@@ -215,7 +217,7 @@ export interface RouteState {
 - TossRewardAd.tsx: TossRewardAd
 
 ### Module Dependencies (import graph)
-  lib/accrual.ts → imports: lib/types, lib...
+...
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -225,14 +227,12 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0004: 입력 검증·마스킹·안전한 저장 (files: src/lib/validation.ts, src/lib/inputMask.ts, src/lib/inputStore.ts)
 - 0005: Home 입력 화면 (files: src/pages/Home.tsx)
 - 0006: Result 핵심 답(무료 층) (files: src/pages/Result.tsx)
+- 0007: 더 깊은 층 + 리워드 게이트 (files: src/components/DeepTier.tsx, src/pages/Result.tsx)
 
 ## TDD 상태
 ⚠️ TDD 테스트 파일 자동 작성에 실패했습니다. 소스 코드를 작성하기 전에 `src/__tests__/packet-XXXX.test.ts` 파일에 AC 기반 테스트를 먼저 작성하세요 (TDD red phase). 테스트 작성 후 구현하세요.
 
 ## Available exports from existing files
-// src/App.tsx
-export default function App() {
-
 // src/components/AdSlot.tsx
 export function AdSlot({ adGroupId, className, variant, theme }: AdSlotProps) {
 
@@ -248,6 +248,9 @@ export function Card({
 
 // src/components/CountUp.tsx
 export function CountUp({
+
+// src/components/DeepTier.tsx
+export function DeepTier({
 
 // src/components/FloatingTabBar.tsx
 export type TabItem = {
@@ -297,7 +300,7 @@ export function recommendBridges(
 
 // src/lib/contract.ts
 export type AppInput = { joinDate: string; monthlyWage: number; usedDays: number };
-export type LeaveBucket = { startDate: string; expiryDate: stri
+export type LeaveBucket = { startDate: string; expir
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 
