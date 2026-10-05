@@ -197,7 +197,7 @@ export interface RouteState {
 - summary.ts: export function applyUsage(buckets: LeaveBucket[], usedTenths: number): LeaveBucket[]; export function summarize(input: AppInput, today: string): AppResult
 - types.ts: export type Basis = 'hire' | 'fiscal'; export interface AppInput; export type BucketKind = 'monthly' | 'prorated' | 'annual'; export interface LeaveBucket; export interface AppResult; export interface MonthPlan; export interface BridgeCombo; export interface RouteState
 - utils.ts: export function cn(...classes: (string | boolean | undefined | null)[]): string; export function formatNumber(n: number): string; export function formatCurrency(n: number, currency = 'KRW'): string
-- validation.ts: export type InputErrors = Partial<Record<keyof AppInput, string>>; export const MIN_HIRE_DATE = '1980-01-01'; export const MAX_SALARY = 100_000_000; export function validateInput( raw: Partial<Record<keyof AppInput, unknown>>, today: string, availableTenths?: number, )
+- validation.ts: export type InputErrors = Partial<Record<keyof AppInput, string>>; export const MIN_HIRE_DATE = '1980-01-01'; export const MAX_SALARY = 100_000_000; export function validateInput( raw: Partial<Record<keyof AppInput, unknown>>, today: string, availableTenths?: number, ); export function validateInputOptionalSalary( raw: Partial<Record<keyof AppInput, unknown>>, today: string, availableTent
 
 ### Components (src/components/)
 - AdSlot.tsx: AdSlot
@@ -212,12 +212,7 @@ export interface RouteState {
 - ScreenScaffold.tsx: ScreenScaffold
 - Sparkline.tsx: Sparkline
 - StateView.tsx: EmptyState, LoadingState
-- SummaryHero.tsx: SummaryHero
-- TossPurchase.tsx: TossPurchase
-- TossRewardAd.tsx: TossRewardAd
-
-### Module Dependencies (import graph)
-...
+- SummaryHero.t...
 CRITICAL: Before creating any new function, type, or component, check the list above. If something similar exists, import and use it.
 
 ## Already Implemented (do NOT duplicate or overwrite)
@@ -228,11 +223,12 @@ CRITICAL: Before creating any new function, type, or component, check the list a
 - 0005: Home 입력 화면 (files: src/pages/Home.tsx)
 - 0006: Result 핵심 답(무료 층) (files: src/pages/Result.tsx)
 - 0007: 더 깊은 층 + 리워드 게이트 (files: src/components/DeepTier.tsx, src/pages/Result.tsx)
-
-## TDD 상태
-⚠️ TDD 테스트 파일 자동 작성에 실패했습니다. 소스 코드를 작성하기 전에 `src/__tests__/packet-XXXX.test.ts` 파일에 AC 기반 테스트를 먼저 작성하세요 (TDD red phase). 테스트 작성 후 구현하세요.
+- 0008: 라우팅 + 검수 점검 (files: src/App.tsx)
 
 ## Available exports from existing files
+// src/App.tsx
+export default function App() {
+
 // src/components/AdSlot.tsx
 export function AdSlot({ adGroupId, className, variant, theme }: AdSlotProps) {
 
@@ -300,7 +296,7 @@ export function recommendBridges(
 
 // src/lib/contract.ts
 export type AppInput = { joinDate: string; monthlyWage: number; usedDays: number };
-export type LeaveBucket = { startDate: string; expir
+expo
 
 ## Memory Index (자동 학습 — 힌트로만 사용, 실제 코드 확인 필수)
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Top, ListRow, Paragraph, Spacing } from '@toss/tds-mobile';
+import { Top, ListRow, Paragraph, Spacing, Button } from '@toss/tds-mobile';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ScreenScaffold } from '../components/ScreenScaffold';
 import { SubmitFooter, ButtonStack } from '../components/BottomCTA';
@@ -10,6 +10,8 @@ import { TossRewardAd } from '@/components/TossRewardAd';
 import { EmptyState, LoadingState } from '../components/StateView';
 import { logClick } from '@/lib/analytics';
 import { formatDot } from '@/lib/date';
+import { requestReviewOnce } from '@/lib/review';
+import { shareApp } from '@/lib/share';
 import { summarize } from '@/lib/summary';
 import type { AppInput, AppResult, BucketKind } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
@@ -118,6 +120,12 @@ export default function Result() {
     setView(compute(state));
   }, [state]);
 
+  // 결과가 실제로 나온 뒤에만 리뷰를 묻는다 — 빈 상태·에러·로딩에서는 부르지 않는다.
+  const ready = view.kind === 'ready';
+  useEffect(() => {
+    if (ready) requestReviewOnce();
+  }, [ready]);
+
   const goHome = useCallback(() => navigate('/'), [navigate]);
   const retry = useCallback(() => {
     logClick('result_retry');
@@ -215,6 +223,17 @@ export default function Result() {
             </TossRewardAd>
           </>
         ) : null}
+        <Spacing size={16} />
+        <Button
+          display="block"
+          variant="weak"
+          onClick={() => {
+            logClick('share_tap');
+            void shareApp({ message: '내 연차가 언제 사라지는지 계산해 봤어요', path: '/' });
+          }}
+        >
+          결과 공유하기
+        </Button>
         <Spacing size={16} />
         <Notices />
         <Spacing size={96} />
