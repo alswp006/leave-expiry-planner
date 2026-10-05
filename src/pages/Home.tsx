@@ -197,7 +197,7 @@ export default function Home() {
       />
 
       {/* 하단 고정 CTA에 가리지 않도록 여유를 둔다 */}
-      <Spacing size={180} />
+      <Spacing size={220} />
     </ScreenScaffold>
   );
 }

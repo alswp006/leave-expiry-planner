@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Top, ListRow, Paragraph, Spacing, Button, Asset } from '@toss/tds-mobile';
+import { Top, ListRow, Paragraph, Spacing, Button } from '@toss/tds-mobile';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ScreenScaffold } from '../components/ScreenScaffold';
 import { SubmitFooter, ButtonStack } from '../components/BottomCTA';
@@ -98,10 +98,10 @@ function Notices() {
   return (
     <div
       data-testid="result-notices"
-      style={{ padding: '0 24px', wordBreak: 'keep-all', textAlign: 'center', textWrap: 'balance' }}
+      style={{ padding: '0 24px', wordBreak: 'keep-all', textAlign: 'center', textWrap: 'balance', display: 'flex', flexDirection: 'column', gap: 8 }}
     >
       {NOTICES.map((line) => (
-        <div key={line} style={{ paddingBottom: 8 }}>
+        <div key={line}>
           <Paragraph.Text typography="t6" color="var(--adaptiveGrey700)">
             {line}
           </Paragraph.Text>
@@ -268,7 +268,6 @@ export default function Result() {
       <ScreenScaffold top={top} bottom={<SubmitFooter label="입력하러 가기" ariaLabel="입력하러 가기" onClick={goHome} />}>
         <EmptyState
           testId="result-empty"
-          icon={<Asset.ContentIcon name="iconStarRegular" alt="" style={{ width: 48, height: 48 }} />}
           title="계산된 결과가 없어요"
           description="입사일을 넣으면 사라질 연차를 알려드려요."
         />
